@@ -269,10 +269,11 @@ async def scrape_person_details(person_url, session, pre_name="", pre_birth_date
                     person_data["Eltűnés dátuma"] = field_value
                 elif field_name == "Körözést elrendelő szerv":
                     person_data["Körözést elrendelő szerv"] = field_value
-                elif field_name == "Körözési eljárás határozat száma":
-                    person_data[
-                        "Körözési eljárás határozat száma, eljárás iktatószáma"
-                    ] = field_value
+                elif (
+                    field_name
+                    == "Körözési eljárás határozat száma, eljárás iktatószáma"
+                ):
+                    person_data["Körözési eljárás határozat száma"] = field_value
             except Exception as e:
                 logger.debug(f"Skipping row due to exception: {e}")
                 continue
