@@ -1,1 +1,6 @@
 streamlit
+beautifulsoup4
+requests
+pandas
+xlsxwriter
+openpyxl
