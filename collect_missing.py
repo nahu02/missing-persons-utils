@@ -26,7 +26,7 @@ async def scrape_missing_persons(
     birth_date_min="2012-06-06",
     birth_date_max="",
     gender="All",
-):
+) -> pd.DataFrame:
     """
     Scrape missing persons data and return a DataFrame with collected information.
 
