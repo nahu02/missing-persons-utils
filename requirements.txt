@@ -1,6 +1,6 @@
 streamlit
 beautifulsoup4
-requests
+aiohttp
 pandas
 xlsxwriter
 openpyxl
