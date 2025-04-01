@@ -38,13 +38,22 @@ with tab1:
         "%Y-%m-%d"
     )
 
-    # Sidebar for search filters
-    with st.sidebar:
-        st.header("Keresési Feltételek")
+    # Search filters section
+    st.header("Keresési Feltételek")
 
+    st.info(
+        "Add meg a keresési feltételeket, majd kattints az 'Eltűnt Személyek Keresése' gombra!"
+    )
+
+    # Create a two-column layout for the name and birth place fields
+    col1, col2 = st.columns(2)
+
+    with col1:
         name = st.text_input(
             "Név", value="", help="Szűrés név alapján", key="search_name"
         )
+
+    with col2:
         birth_place = st.text_input(
             "Születési Hely",
             value="",
@@ -52,6 +61,10 @@ with tab1:
             key="search_birthplace",
         )
 
+    # Create a layout for birth date filters
+    col1, col2 = st.columns(2)
+
+    with col1:
         birth_date_min = st.date_input(
             "Születési Dátum (minimum)",
             datetime.strptime(default_min_birth_date, "%Y-%m-%d"),
@@ -59,6 +72,7 @@ with tab1:
             key="search_min_date",
         )
 
+    with col2:
         use_max_date = st.checkbox(
             "Születési Dátum (maximum) beállítása", value=False, key="use_max_date"
         )
@@ -71,16 +85,13 @@ with tab1:
                 key="search_max_date",
             )
 
-        search_button = st.button(
-            "Eltűnt Személyek Keresése",
-            type="primary",
-            use_container_width=True,
-            key="search_button",
-        )
-
-        st.info(
-            "Megjegyzés: A keresés több percig is eltarthat a találatok számától függően."
-        )
+    # Search button across the full width
+    search_button = st.button(
+        "Eltűnt Személyek Keresése",
+        type="primary",
+        use_container_width=True,
+        key="search_button",
+    )
 
     # Main content area for search
     if search_button:
@@ -124,7 +135,6 @@ with tab1:
                     st.dataframe(df, use_container_width=True, hide_index=True)
 
                     # Add download button
-
                     # Create a BytesIO buffer for Excel file
                     buffer = io.BytesIO()
                     with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
@@ -143,10 +153,6 @@ with tab1:
             except Exception as e:
                 st.error(f"Hiba a keresés során: {e}")
                 logging.error(f"Error in Streamlit app: {e}")
-    else:
-        st.info(
-            "Add meg a keresési feltételeket a bal oldali sávban, majd kattints az 'Eltűnt Személyek Keresése' gombra!"
-        )
 
 # TAB 2: COMPARISON PAGE
 with tab2:
@@ -391,7 +397,7 @@ with tab2:
                                 "Érték": [
                                     ongoing_file_name,
                                     new_file_name,
-                                    datetime.now().strftime('%Y-%m-%d'),
+                                    datetime.now().strftime("%Y-%m-%d"),
                                     eltunes_column_name,
                                     len(original_ongoing_df),
                                     len(new_df),
@@ -406,20 +412,30 @@ with tab2:
                                 sheet_name=f"Összesítés {datetime.now().strftime('%Y-%m-%d')}",
                                 index=False,
                             )
-                            
+
                             # Copy all other sheets from the ongoing file (if any)
                             try:
-                                ongoing_excel = pd.ExcelFile(ongoing_file, engine="openpyxl")
+                                ongoing_excel = pd.ExcelFile(
+                                    ongoing_file, engine="openpyxl"
+                                )
                                 # Check if there are more than 1 sheets
                                 if len(ongoing_excel.sheet_names) > 1:
                                     for sheet_name in ongoing_excel.sheet_names:
                                         # Skip the first sheet as we already created the main data sheet
                                         if sheet_name != ongoing_excel.sheet_names[0]:
                                             # Read the sheet and write it to the new file
-                                            sheet_df = pd.read_excel(ongoing_file, sheet_name=sheet_name)
-                                            sheet_df.to_excel(writer, sheet_name=sheet_name, index=False)
+                                            sheet_df = pd.read_excel(
+                                                ongoing_file, sheet_name=sheet_name
+                                            )
+                                            sheet_df.to_excel(
+                                                writer,
+                                                sheet_name=sheet_name,
+                                                index=False,
+                                            )
                             except Exception as e:
-                                logging.warning(f"Could not copy additional sheets from ongoing file: {e}")
+                                logging.warning(
+                                    f"Could not copy additional sheets from ongoing file: {e}"
+                                )
 
                         buffer.seek(0)
 
