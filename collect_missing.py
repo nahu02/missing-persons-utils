@@ -213,6 +213,8 @@ async def scrape_person_details(person_url, session, pre_name="", pre_birth_date
     try:
         logger.debug(f"Scraping details from {person_url}")
 
+        current_date = datetime.now().strftime("%Y-%m-%d")
+
         # Initialize data dictionary with pre-extracted values
         person_data = {
             "Név": pre_name,
@@ -220,9 +222,9 @@ async def scrape_person_details(person_url, session, pre_name="", pre_birth_date
             "Születési hely": "",
             "Születési dátum": pre_birth_date,
             "Születési ország": "",
-            "Eltűnés dátuma": "",
             "Körözést elrendelő szerv": "",
             "Körözési eljárás határozat száma": "",
+            f"Eltűnés dátuma {current_date}": "",
         }
 
         async with session.get(person_url) as response:
@@ -266,7 +268,7 @@ async def scrape_person_details(person_url, session, pre_name="", pre_birth_date
                 elif field_name == "Születési ország":
                     person_data["Születési ország"] = field_value
                 elif field_name == "Eltűnés dátuma":
-                    person_data["Eltűnés dátuma"] = field_value
+                    person_data[f"Eltűnés dátuma {current_date}"] = field_value
                 elif field_name == "Körözést elrendelő szerv":
                     person_data["Körözést elrendelő szerv"] = field_value
                 elif (
