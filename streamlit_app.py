@@ -101,58 +101,60 @@ with tab1:
 
         progress_placeholder = st.empty()
 
-        with st.spinner(
-            "Adatok lekérdezése a Rendőrség weboldaláról. Ez eltarthat egy ideig..."
-        ):
-            try:
-                # Create a progress display
-                progress_container = progress_placeholder.container()
-                progress_container.text("Keresés indítása...")
+        try:
+            # Create a progress display
+            progress_container = progress_placeholder.container()
+            progress_container.text("Keresés...")
+            progress_bar = progress_container.progress(1)
 
-                # Execute the async function
-                df = asyncio.run(
-                    scrape_missing_persons(
-                        name=name,
-                        birth_place=birth_place,
-                        birth_date_min=min_birth_date_str,
-                        birth_date_max=max_birth_date_str,
-                    )
+            # Execute the async function
+            df = asyncio.run(
+                scrape_missing_persons(
+                    name=name,
+                    birth_place=birth_place,
+                    birth_date_min=min_birth_date_str,
+                    birth_date_max=max_birth_date_str,
+                    progress_callback=lambda progress, total: progress_bar.progress(
+                        int(progress / total * 100),
+                        f"{progress} / {total} lekérdezve a keresési feltételeknek megfelelő eltűnt személyekből",
+                    ),
+                )
+            )
+
+            # Clear progress display when done
+            progress_placeholder.empty()
+
+            if df.empty:
+                st.warning("Nem található eredmény a megadott feltételekkel.")
+            else:
+                st.success(
+                    f"A keresési feltételeknek {len(df)} eltűnt személy felelt meg."
                 )
 
-                # Clear progress display when done
-                progress_placeholder.empty()
+                # Display data
+                st.subheader("Eredmények")
 
-                if df.empty:
-                    st.warning("Nem található eredmény a megadott feltételekkel.")
-                else:
-                    st.success(
-                        f"A keresési feltételek alapján találtam {len(df)} eltűnt személyt."
-                    )
+                st.dataframe(df, use_container_width=True, hide_index=True)
 
-                    # Display data
-                    st.subheader("Eredmények")
+                # Add download button
+                # Create a BytesIO buffer for Excel file
+                buffer = io.BytesIO()
+                with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+                    df.to_excel(writer, index=False)
+                buffer.seek(0)
 
-                    st.dataframe(df, use_container_width=True, hide_index=True)
+                st.download_button(
+                    "Letöltés Excel fájlként",
+                    buffer,
+                    f"eltunt-szemelyek_{datetime.now().strftime('%Y-%m-%d')}_min-szuletes-{min_birth_date_str}.xlsx",
+                    "application/vnd.ms-excel",
+                    key="download-excel",
+                    icon="⬇️",
+                )
 
-                    # Add download button
-                    # Create a BytesIO buffer for Excel file
-                    buffer = io.BytesIO()
-                    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
-                        df.to_excel(writer, index=False)
-                    buffer.seek(0)
-
-                    st.download_button(
-                        "Letöltés Excel fájlként",
-                        buffer,
-                        f"eltunt-szemelyek_{datetime.now().strftime('%Y-%m-%d')}_min-szuletes-{min_birth_date_str}.xlsx",
-                        "application/vnd.ms-excel",
-                        key="download-excel",
-                        icon="⬇️",
-                    )
-
-            except Exception as e:
-                st.error(f"Hiba a keresés során: {e}")
-                logging.error(f"Error in Streamlit app: {e}")
+        except Exception as e:
+            st.error(f"Hiba a keresés során: {e}")
+            logging.error(f"Error in Streamlit app: {e}")
 
 # TAB 2: COMPARISON PAGE
 with tab2:

@@ -6,6 +6,7 @@ This script scrapes data about missing persons from the Hungarian Police website
 and creates a CSV file with detailed information about each person.
 """
 
+from typing import Callable
 import aiohttp
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -26,6 +27,9 @@ async def scrape_missing_persons(
     birth_date_min="2012-06-06",
     birth_date_max="",
     gender="All",
+    progress_callback: Callable[
+        [int, int], None
+    ] = None,  # callback(current, total) to report progress of scraping
 ) -> pd.DataFrame:
     """
     Scrape missing persons data and return a DataFrame with collected information.
@@ -38,7 +42,8 @@ async def scrape_missing_persons(
         requesting_authority: Filter by requesting authority (FK code)
         birth_date_min: Filter by minimum birth date (YYYY-MM-DD)
         birth_date_max: Filter by maximum birth date (YYYY-MM-DD)
-        gender: Filter by gender (All or code for gender)ű
+        gender: Filter by gender (All or code for gender)
+        progress_callback: Callback function to report progress of scraping. Signature: callback(current, total). No guarantees that it will always be called.
 
     Returns:
         DataFrame containing all scraped data
@@ -176,6 +181,8 @@ async def scrape_missing_persons(
 
                 if no_of_results:
                     msg = f"Scraped data for {len(all_persons)} missing persons out of {no_of_results}"
+                    if progress_callback:
+                        progress_callback(len(all_persons), no_of_results)
                 else:
                     msg = f"Scraped data for {len(all_persons)} missing persons"
                 logger.info(msg)
